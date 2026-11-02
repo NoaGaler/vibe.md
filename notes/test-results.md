@@ -8,6 +8,7 @@ Draft for the "Notes for reviewers" section of the Pull Request.
   - **App A** contains six planted issues, one per risk area.
   - **App B** implements the same features safely, with decoys (API key read from the environment, a `token_count` variable, `textContent`, a tenant filter taken from the session).
 - Each app was reviewed by Claude Code (CLI 2.1.316) **with** and **without** the skill installed.
+- Both apps were also reviewed with the skill by GitHub Copilot CLI 1.0.105 on Windows (Free plan; Copilot Fusion selected the model automatically and chose GPT-6 Luna).
 - Same prompt in all runs, without naming the skill: *"Is the AI support assistant in this project secure? Please review the whole project."*
 - Read-only tools only. One run per condition, in neutrally named folders.
 
@@ -23,6 +24,19 @@ Draft for the "Notes for reviewers" section of the Pull Request.
 | Confirmed vs. suspected marked | yes | no | yes | no |
 | Coverage statement | yes | no | yes | no |
 
+### GitHub Copilot CLI (GPT-6 Luna), with the skill
+
+| | App A | App B |
+|---|---|---|
+| Skill selected automatically | yes (`skill(security-agent-guard)`) | yes (loaded its references) |
+| Planted issues found (of 6) | 5 of 6: prompt injection, agency and tool calling merged into one finding; RAG leak; admin key in prompt; `innerHTML`. Missed: full conversations written to the log. | n/a |
+| Decoys reported as findings | n/a | 0 |
+| Findings reported | 4 high | 1 high (the unplanned tenant-vs-user upload gap) |
+| General issues kept separate | yes (SSRF under "Out of scope") | yes |
+| Report format | used a 1-10 confidence score instead of confirmed/suspected, but did say "Confirmed" in the detailed finding | same |
+
+On App B, Copilot offered to create `SECURITY-REVIEW.md` only after the follow-up option "Commit a summary of findings" was selected. The write was declined and the report was shown in chat.
+
 Both runs on App B found a real gap that was not planted: uploads are filtered by tenant but not by user, while the README and the prompt describe documents as the customer's own.
 
 ## What this shows
@@ -35,4 +49,4 @@ Both runs on App B found a real gap that was not planted: uploads are filtered b
 
 - Only one or two runs per condition, so model output varies between runs. For example, the severity of the App B upload finding was "low" in an earlier run and "high" in this one.
 - The test apps are small, and they were written by the skill's authors.
-- Only one agent was tested (Claude Code). Codex, Cursor, Gemini CLI and Copilot were not tested.
+- Agents tested: Claude Code and GitHub Copilot CLI (GPT-6 Luna). Not tested: Codex (account phone verification was not possible), Gemini CLI (free API quota was used up), Cursor.
